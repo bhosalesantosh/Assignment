@@ -1,6 +1,5 @@
 package ImageHoster.controller;
 
-
 import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
@@ -51,9 +50,9 @@ public class ImageController {
     //Also now you need to add the tags of an image in the Model type object
     //Here a list of tags is added in the Model type object
     //this list is then sent to 'images/image.html' file and the tags are displayed
-    @RequestMapping("/images/{id}")
-    public String showImage(@PathVariable("id") Integer imageId, Model model) {
-        Image image = imageService.getImage(imageId);
+    @RequestMapping("/images/{id}/{imageTitle}")
+    public String showImage(@PathVariable("id") Integer id, @PathVariable("imageTitle") String imageTitle, Model model) {
+        Image image = imageService.getImage(id);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
         List<Comment> comments = commentService.getAllCommentByImageId(image.getId());
@@ -101,21 +100,23 @@ public class ImageController {
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
     public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session) {
+        User user = (User) session.getAttribute("loggeduser");
         Image image = imageService.getImage(imageId);
-        User loggedInUser = (User)session.getAttribute("loggeduser");
-            String tags = convertTagsToString(image.getTags());
-            int intUserID= image.getUser().getId();
-            model.addAttribute("image", image);
-            model.addAttribute("tags", tags);
-        if (loggedInUser.getId() == intUserID) {
+        model.addAttribute("image", image);
+
+        if (user.getId() == image.getUser().getId()) {
+            if(image.getTags().size() > 0){
+                model.addAttribute("tags",convertTagsToString(image.getTags()));
+            }
             return "images/edit";
-        }
-        else
-        {
-            String editError ="Only the owner of the image can edit the image";
-            image.setEditError(editError);
+        } else {
+            String error = "Only the owner of the image can edit the image";
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("editError", error);
             return "images/image";
         }
+
+
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
@@ -149,7 +150,7 @@ public class ImageController {
         updatedImage.setDate(new Date());
 
         imageService.updateImage(updatedImage);
-        return "redirect:/images/" + updatedImage.getTitle();
+        return "redirect:/images/" + imageId +"/"+updatedImage.getTitle();
     }
 
 
@@ -157,24 +158,23 @@ public class ImageController {
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
     @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
-    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, Model model, HttpSession session) {
+    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggeduser");
         Image image = imageService.getImage(imageId);
-        User loggedInUser = (User)session.getAttribute("loggeduser");
-        String tags = convertTagsToString(image.getTags());
-        int intUserID= image.getUser().getId();
-        if (loggedInUser.getId() == intUserID) {
+        if (user.getId() == image.getUser().getId()) {
+            commentService.deleteCommentsByImage(imageId);
             imageService.deleteImage(imageId);
             return "redirect:/images";
-        }
-        else
-        {
+        } else {
+            String error = "Only the owner of the image can delete the image";
+            model.addAttribute("tags", image.getTags());
             model.addAttribute("image", image);
-            String deleteError ="Only the owner of the image can delete the image";
-            image.setDeleteError(deleteError);
+            model.addAttribute("deleteError", error);
             return "images/image";
         }
-    }
 
+
+    }
 
     //This method converts the image to Base64 format
     private String convertUploadedFileToBase64(MultipartFile file) throws IOException {

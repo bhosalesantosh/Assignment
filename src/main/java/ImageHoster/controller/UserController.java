@@ -1,26 +1,22 @@
 package ImageHoster.controller;
 
-import ImageHoster.Utilities.CommonUtilities;
 import ImageHoster.model.Image;
 import ImageHoster.model.User;
 import ImageHoster.model.UserProfile;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.UserService;
+import ImageHoster.Utilities.CommonUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
 
 @Controller
-@ComponentScan( basePackages = "ImageHoster.controllers")
 public class UserController {
 
     @Autowired
@@ -45,7 +41,7 @@ public class UserController {
     //This controller method is called when the request pattern is of type 'users/registration' and also the incoming request is of POST type
     //This method calls the business logic and after the user record is persisted in the database, directs to login page
     @RequestMapping(value = "users/registration", method = RequestMethod.POST)
-    public String registerUser(User user, Model model) {
+    public String registerUser(User user,Model model) {
         if(CommonUtilities.isValidPassword(user.getPassword())){
             userService.registerUser(user);
             return "users/login";
@@ -55,7 +51,6 @@ public class UserController {
             model.addAttribute("User", user);
             return "users/registration";
         }
-
     }
 
     //This controller method is called when the request pattern is of type 'users/login'
@@ -63,7 +58,6 @@ public class UserController {
     public String login() {
         return "users/login";
     }
-
     //This controller method is called when the request pattern is of type 'users/login' and also the incoming request is of POST type
     //The return type of the business logic is changed to User type instead of boolean type. The login() method in the business logic checks whether the user with entered username and password exists in the database and returns the User type object if user with entered username and password exists in the database, else returns null
     //If user with entered username and password exists in the database, add the logged in user in the Http Session and direct to user homepage displaying all the images in the application

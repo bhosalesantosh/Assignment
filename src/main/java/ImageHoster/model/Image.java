@@ -37,12 +37,6 @@ public class Image {
     @Column(name = "date")
     private Date date;
 
-    @Transient
-    private  String editError;
-
-    @Transient
-    private  String deleteError;
-
     //The 'images' table is mapped to 'users' table with Many:One mapping
     //One image can have only one user (owner) but one user can have multiple images
     //FetchType is EAGER
@@ -75,20 +69,7 @@ public class Image {
         this.date = date;
     }
 
-    public String getDeleteError () { return deleteError; }
 
-    public void setDeleteError(String deleteError) {
-        this.deleteError = deleteError;
-    }
-
-
-    public String getEditError () {
-        return editError;
-    }
-
-    public void setEditError(String editError) {
-        this.editError = editError;
-    }
 
     public Integer getId() {
         return id;
